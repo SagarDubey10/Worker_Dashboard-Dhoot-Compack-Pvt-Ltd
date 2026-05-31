@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Worker Dashboard – Dhoot Compack Pvt Ltd</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      padding: 1.5rem
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 2px
+    }
+
+    .sub {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 1.25rem
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1rem;
+      flex-wrap: wrap
+    }
+
+    .tab {
+      padding: 5px 14px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      color: #555
+    }
+
+    .tab.on {
+      background: #e6f1fb;
+      color: #185fa5;
+      border-color: #185fa5;
+      font-weight: 600
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+      margin-bottom: 1rem
+    }
+
+    .mc {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      border: 1px solid #e5e5e5
+    }
+
+    .mc-l {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 3px
+    }
+
+    .mc-v {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a
+    }
+
+    .mc-s {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 1px
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1rem
+    }
+
+    .cc {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 12px 14px
+    }
+
+    .cc.full {
+      grid-column: 1/-1
+    }
+
+    .cc-l {
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px
+    }
+
+    .leg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px
+    }
+
+    .li {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #666
+    }
+
+    .lsq {
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+      display: inline-block
+    }
+
+    .tbl-card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 1rem
+    }
+
+    .tbl-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap
+    }
+
+    .tbl-top input {
+      flex: 1;
+      min-width: 160px;
+      font-size: 12px;
+      padding: 7px 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      outline: none
+    }
+
+    .tbl-top input:focus {
+      border-color: #185fa5
+    }
+
+    .add-btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid #185fa5;
+      background: #e6f1fb;
+      color: #185fa5;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap
+    }
+
+    .tw {
+      overflow-x: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px
+    }
+
+    th {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid #ddd;
+      font-weight: 600;
+      color: #666;
+      white-space: nowrap;
+      background: #fafafa
+    }
+
+    td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #1a1a1a;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    tr:last-child td {
+      border-bottom: none
+    }
+
+    tr:hover td {
+      background: #f9f9f9
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-weight: 600
+    }
+
+    .bf {
+      background: #FBEAF0;
+      color: #993556
+    }
+
+    .bm {
+      background: #E6F1FB;
+      color: #185FA5
+    }
+
+    .bc {
+      background: #EAF3DE;
+      color: #3B6D11
+    }
+
+    .bco {
+      background: #faeeda;
+      color: #854F0B
+    }
+
+    .pdf-link {
+      color: #185fa5;
+      font-size: 10px;
+      text-decoration: underline
+    }
+
+    .pdf-miss {
+      color: #ccc;
+      font-size: 10px
+    }
+
+    .rc {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 6px
+    }
+
+    .action-btn {
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600
+    }
+
+    .edit-btn {
+      color: #185fa5;
+      background: #e6f1fb
+    }
+
+    .del-btn {
+      color: #cc3a21;
+      background: #fdecea
+    }
+
+    .action-btn:hover {
+      opacity: 0.75
+    }
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #185fa5
+    }
+
+    .loading-overlay.show {
+      display: flex
+    }
+
+    /* Modal */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center
+    }
+
+    .overlay.show {
+      display: flex
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      padding: 20px;
+      width: min(560px, 96vw);
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.13)
+    }
+
+    .modal h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .modal-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      background: #e6f1fb;
+      color: #185fa5;
+      font-weight: 600
+    }
+
+    .modal-badge.edit-mode {
+      background: #fff3e0;
+      color: #b45309
+    }
+
+    .fgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .fg.full {
+      grid-column: 1/-1
+    }
+
+    .fg label {
+      font-size: 11px;
+      color: #666;
+      font-weight: 600
+    }
+
+    .fg input,
+    .fg select,
+    .fg textarea {
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #1a1a1a;
+      width: 100%
+    }
+
+    .fg input:focus,
+    .fg select:focus,
+    .fg textarea:focus {
+      outline: none;
+      border-color: #185fa5
+    }
+
+    .fg textarea {
+      height: 60px;
+      resize: none
+    }
+
+    .pdf-note {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 2px
+    }
+
+    .mbtns {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      justify-content: flex-end
+    }
+
+    .mbtn {
+      padding: 7px 16px;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      background: #fff;
+      color: #555
+    }
+
+    .mbtn.prim {
+      background: #e6f1fb;
+      color: #185fa5;
+      border-color: #185fa5;
+      font-weight: 600
+    }
+
+    .mbtn.danger {
+      background: #fdecea;
+      color: #cc3a21;
+      border-color: #f5b7b1;
+      font-weight: 600
+    }
+
+    .err {
+      font-size: 10px;
+      color: #cc3a21;
+      margin-top: 8px
+    }
+
+    .confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 200;
+      align-items: center;
+      justify-content: center
+    }
+
+    .confirm-overlay.show {
+      display: flex
+    }
+
+    .confirm-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      max-width: 340px;
+      width: 90%;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.13)
+    }
+
+    .confirm-box h3 {
+      font-size: 15px;
+      margin-bottom: 8px
+    }
+
+    .confirm-box p {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 16px
+    }
+
+    .confirm-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end
+    }
+
+    @media(max-width:600px) {
+      .charts {
+        grid-template-columns: 1fr
+      }
+
+      .fgrid {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loading" class="loading-overlay">Syncing Database with Google Sheets...</div>
+  <h1>Worker Details Dashboard</h1>
+  <p class="sub">Dhoot Compack Pvt Ltd · Gut No.140 Bidkin, Farola &nbsp;|&nbsp; Live Google Sheets Database</p>
+
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab('all')">All Workers</button>
+    <button class="tab" onclick="switchTab('Contractor')">Contractor</button>
+    <button class="tab" onclick="switchTab('Company')">Company (CC)</button>
+  </div>
+
+  <div id="metric-box" class="metrics"></div>
+
+  <div class="charts">
+    <div class="cc">
+      <div class="cc-l">Department headcount</div>
+      <div class="leg" id="dleg"></div>
+      <div style="position:relative;height:200px"><canvas id="dChart"></canvas></div>
+    </div>
+    <div class="cc">
+      <div class="cc-l">Gender split</div>
+      <div class="leg" id="gleg"></div>
+      <div style="position:relative;height:200px"><canvas id="gChart"></canvas></div>
+    </div>
+    <div class="cc full">
+      <div class="cc-l">Contractor distribution</div>
+      <div class="leg" id="cleg"></div>
+      <div style="position:relative;height:180px"><canvas id="cChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="tbl-top">
+      <input type="text" placeholder="Search name, dept, designation, contractor…" oninput="filterQ(this.value)" />
+      <select id="age-group-filter" onchange="applyFilters()"
+        style="font-size:12px;padding:6px 10px;border:1px solid #ddd;border-radius:8px;color:#555;background:#fff;cursor:pointer">
+        <option value="">All Ages</option>
+        <option value="18-25">18–25 yrs</option>
+        <option value="26-35">26–35 yrs</option>
+        <option value="36-45">36–45 yrs</option>
+        <option value="46-55">46–55 yrs</option>
+        <option value="56+">56+ yrs</option>
+        <option value="unknown">Age Unknown</option>
+      </select>
+      <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#555">
+        <label style="white-space:nowrap">Age:</label>
+        <input type="number" id="age-min" placeholder="Min" min="18" max="80" oninput="applyFilters()"
+          style="width:56px;font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:8px;outline:none" />
+        <span>–</span>
+        <input type="number" id="age-max" placeholder="Max" min="18" max="80" oninput="applyFilters()"
+          style="width:56px;font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:8px;outline:none" />
+      </div>
+      <button onclick="clearAgeFilter()"
+        style="font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer">✕
+        Clear</button>
+      <button class="add-btn" onclick="openModal(null)">+ Add Employee</button>
+    </div>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Dept</th>
+            <th>Designation</th>
+            <th>Contractor</th>
+            <th>Gender</th>
+            <th>Date of Birth</th>
+            <th>Date of Joining</th>
+            <th>Age</th>
+            <th>ID Proof</th>
+            <th>Joining Form</th>
+            <th>Sheet</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="rc" id="rc"></div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2 id="modal-title">Add Employee <span class="modal-badge" id="modal-badge">NEW</span></h2>
+      <div class="fgrid">
+        <div class="fg full"><label>Full name *</label><input id="f-name" placeholder="FULL NAME IN CAPS" /></div>
+        <div class="fg"><label>Department *</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="f-dept" style="flex:1"></select>
+            <button type="button" onclick="openAddDept()"
+              style="padding:6px 10px;font-size:12px;border-radius:8px;border:1px solid #185fa5;background:#e6f1fb;color:#185fa5;cursor:pointer;white-space:nowrap;font-weight:600">+
+              New</button>
+          </div>
+        </div>
+        <div class="fg"><label>Designation *</label><input id="f-des" placeholder="e.g. Tailor, Helper" /></div>
+        <div class="fg"><label>Contractor</label><input id="f-cont" placeholder="e.g. MANSOOR, CC" /></div>
+        <div class="fg"><label>Gender *</label>
+          <select id="f-gen">
+            <option value="">Select</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+          </select>
+        </div>
+        <div class="fg"><label>Date of Birth</label><input type="date" id="f-dob" /></div>
+        <div class="fg"><label>Date of Joining</label><input type="date" id="f-doj" /></div>
+        <div class="fg"><label>Sheet</label>
+          <select id="f-sheet">
+            <option value="Contractor">Contractor</option>
+            <option value="Company">Company (CC)</option>
+          </select>
+        </div>
+        <div class="fg full"><label>Identity Proof PDF Link</label><input id="f-idpdf"
+            placeholder="https://drive.google.com/file/..." /><span class="pdf-note">Paste Google Drive or any PDF URL
+            for this worker's ID document</span></div>
+        <div class="fg full"><label>Joining Form PDF Link</label><input id="f-jfpdf"
+            placeholder="https://drive.google.com/file/..." /><span class="pdf-note">Paste Google Drive or any PDF URL
+            for the joining form</span></div>
+        <div class="fg full"><label>Remark</label><textarea id="f-rem" placeholder="Optional notes"></textarea></div>
+      </div>
+      <div class="err" id="ferr"></div>
+      <div class="mbtns">
+        <button class="mbtn" onclick="closeModal()">Cancel</button>
+        <button class="mbtn prim" id="save-btn" onclick="saveEmployee()">Save Employee</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-overlay" id="dept-overlay">
+    <div class="confirm-box" style="max-width:400px">
+      <h3>🏢 Manage Departments</h3>
+      <p style="font-size:12px;color:#666;margin-bottom:12px">Add new or remove existing departments</p>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <input id="new-dept-input" type="text" placeholder="Enter new department name…"
+          style="flex:1;font-size:12px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;outline:none" />
+        <button onclick="addDept()"
+          style="padding:7px 12px;font-size:12px;border-radius:8px;border:1px solid #185fa5;background:#e6f1fb;color:#185fa5;cursor:pointer;font-weight:600">Add</button>
+      </div>
+      <div id="dept-list"
+        style="max-height:220px;overflow-y:auto;border:1px solid #f0f0f0;border-radius:8px;padding:4px"></div>
+      <div class="err" id="dept-err" style="margin-top:6px"></div>
+      <div class="confirm-btns" style="margin-top:12px">
+        <button class="mbtn prim" onclick="closeDeptModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-box">
+      <h3>Delete Employee?</h3>
+      <p id="confirm-msg">Are you sure you want to delete this employee? This cannot be undone.</p>
+      <div class="confirm-btns">
+        <button class="mbtn" onclick="closeConfirm()">Cancel</button>
+        <button class="mbtn danger" onclick="confirmDelete()">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    // Paste your Stein sheet endpoint URL inside the single quotes below
+    const STEIN_API_URL = 'https://api.steinhq.com/v1/storages/6a1c51ea92b1163e97ff1a81';
+
+    const DCOLS = ['#3266ad', '#1D9E75', '#639922', '#BA7517', '#D85A30', '#D4537E', '#7F77DD', '#534AB7', '#888780', '#5F5E5A', '#0F6E56', '#cc3a21', '#eaa041', '#4A1B0C'];
+    let workers = [];
+    let tab = 'all', q = '';
+    let dC, gC, cC;
+    let editId = null, deleteId = null;
+
+    function showLoading(show) { document.getElementById('loading').classList.toggle('show', show); }
+
+    async function fetchFromSheets() {
+      showLoading(true);
+      try {
+        const response = await fetch(STEIN_API_URL);
+        const data = await response.json();
+        workers = data.map(w => ({
+          id: parseInt(w.id),
+          sr: String(w.sr),
+          name: w.name,
+          dept: w.dept,
+          des: w.des,
+          cont: w.cont,
+          g: w.g,
+          dob: w.dob,
+          doj: w.doj,
+          age: w.age ? parseInt(w.age) : null,
+          sheet: w.sheet,
+          idpdf: w.idpdf || '',
+          jfpdf: w.jfpdf || '',
+          rem: w.rem || ''
+        }));
+        refresh();
+      } catch (e) {
+        alert('Error fetching data from cloud. Make sure your Stein API URL is correct.');
+      }
+      showLoading(false);
+    }
+
+    function counts(arr, key) { const m = {}; arr.forEach(w => { const v = w[key] || '?'; m[v] = (m[v] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); }
+
+    function renderMetrics(d) {
+      const f = d.filter(w => w.g === 'F').length, m = d.length - f;
+      const withAge = d.filter(w => w.age != null);
+      const avgAge = withAge.length ? Math.round(withAge.reduce((s, w) => s + w.age, 0) / withAge.length) : 0;
+      const minAge = withAge.length ? Math.min(...withAge.map(w => w.age)) : 0;
+      const maxAge = withAge.length ? Math.max(...withAge.map(w => w.age)) : 0;
+      const ag1 = d.filter(w => w.age >= 18 && w.age <= 25).length;
+      const ag2 = d.filter(w => w.age >= 26 && w.age <= 35).length;
+      const ag3 = d.filter(w => w.age >= 36 && w.age <= 45).length;
+      const ag4 = d.filter(w => w.age >= 46 && w.age <= 55).length;
+      const ag5 = d.filter(w => w.age > 55).length;
+      document.getElementById('metric-box').innerHTML = `
+    <div class="mc"><div class="mc-l">Total Workers</div><div class="mc-v">${d.length}</div></div>
+    <div class="mc"><div class="mc-l">Female</div><div class="mc-v">${f}</div><div class="mc-s">${d.length ? Math.round(f / d.length * 100) : 0}%</div></div>
+    <div class="mc"><div class="mc-l">Male</div><div class="mc-v">${m}</div><div class="mc-s">${d.length ? Math.round(m / d.length * 100) : 0}%</div></div>
+    <div class="mc"><div class="mc-l">Avg Age</div><div class="mc-v">${avgAge || '—'}</div><div class="mc-s">${minAge}–${maxAge} range</div></div>
+    <div class="mc" style="cursor:pointer" onclick="setAgeGroup('18-25')"><div class="mc-l">Age 18–25</div><div class="mc-v" style="color:#185fa5">${ag1}</div></div>
+    <div class="mc" style="cursor:pointer" onclick="setAgeGroup('26-35')"><div class="mc-l">Age 26–35</div><div class="mc-v" style="color:#1D9E75">${ag2}</div></div>
+    <div class="mc" style="cursor:pointer" onclick="setAgeGroup('36-45')"><div class="mc-l">Age 36–45</div><div class="mc-v" style="color:#639922">${ag3}</div></div>
+    <div class="mc" style="cursor:pointer" onclick="setAgeGroup('46-55')"><div class="mc-l">Age 46–55</div><div class="mc-v" style="color:#BA7517">${ag4}</div></div>
+    <div class="mc" style="cursor:pointer" onclick="setAgeGroup('56+')"><div class="mc-l">Age 56+</div><div class="mc-v" style="color:#cc3a21">${ag5}</div></div>
+    <div class="mc"><div class="mc-l">Missing DOB</div><div class="mc-v">${d.filter(w => !w.dob).length}</div></div>
+  `;
+    }
+
+    function makeLegend(id, labels, colors) {
+      document.getElementById(id).innerHTML = labels.map((l, i) => `<div class="li"><div class="lsq" style="background:${colors[i % colors.length]}"></div>${l}</div>`).join('');
+    }
+
+    function renderCharts(d) {
+      const depts = counts(d, 'dept'), contrs = counts(d, 'cont'), f = d.filter(w => w.g === 'F').length, m = d.length - f;
+      makeLegend('dleg', depts.map(x => x[0]), DCOLS);
+      makeLegend('gleg', ['Female', 'Male'], ['#D4537E', '#3266ad']);
+      makeLegend('cleg', contrs.map(x => x[0]), DCOLS);
+      const opts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+      if (dC) dC.destroy();
+      dC = new Chart(document.getElementById('dChart'), { type: 'bar', data: { labels: depts.map(x => x[0]), datasets: [{ data: depts.map(x => x[1]), backgroundColor: DCOLS.slice(0, depts.length), borderRadius: 3 }] }, options: { ...opts, scales: { x: { ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40 } }, y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } } } } });
+      if (gC) gC.destroy();
+      gC = new Chart(document.getElementById('gChart'), { type: 'doughnut', data: { labels: ['Female', 'Male'], datasets: [{ data: [f, m], backgroundColor: ['#D4537E', '#3266ad'], borderWidth: 0 }] }, options: { ...opts, cutout: '60%' } });
+      if (cC) cC.destroy();
+      cC = new Chart(document.getElementById('cChart'), { type: 'bar', data: { labels: contrs.map(x => x[0]), datasets: [{ data: contrs.map(x => x[1]), backgroundColor: DCOLS.slice(0, contrs.length), borderRadius: 3 }] }, options: { ...opts, scales: { x: { ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40 } }, y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } } } } });
+    }
+
+    function pdfCell(url, label) {
+      if (!url) return `<span class="pdf-miss">No link</span>`;
+      return `<a class="pdf-link" href="${url}" target="_blank">&#128196; ${label}</a>`;
+    }
+
+    function renderTable(d) {
+      document.getElementById('tbody').innerHTML = d.map((w, i) => `<tr>
+    <td style="color:#aaa;min-width:28px">${i + 1}</td>
+    <td style="font-weight:600;min-width:140px">${w.name}</td>
+    <td style="min-width:55px">${w.dept}</td>
+    <td style="min-width:80px">${w.des}</td>
+    <td style="min-width:70px">${w.cont}</td>
+    <td style="min-width:42px"><span class="badge ${w.g === 'F' ? 'bf' : 'bm'}">${w.g === 'F' ? 'F' : 'M'}</span></td>
+    <td style="min-width:80px">${w.dob || '—'}</td>
+    <td style="min-width:80px">${w.doj || '—'}</td>
+    <td style="min-width:30px">${w.age != null ? w.age : '—'}</td>
+    <td style="min-width:60px">${pdfCell(w.idpdf, 'ID')}</td>
+    <td style="min-width:65px">${pdfCell(w.jfpdf, 'Form')}</td>
+    <td style="min-width:50px"><span class="badge ${w.sheet === 'Contractor' ? 'bco' : 'bc'}">${w.sheet === 'Contractor' ? 'Contr.' : 'CC'}</span></td>
+    <td style="min-width:90px;white-space:nowrap">
+      <button class="action-btn edit-btn" onclick="openModal(${w.id})">&#9998; Edit</button>
+      &nbsp;
+      <button class="action-btn del-btn" onclick="askDelete(${w.id},'${w.name.replace(/'/g, "\\'")}')">&#128465; Del</button>
+    </td>
+  </tr>`).join('');
+      document.getElementById('rc').textContent = `${d.length} worker${d.length !== 1 ? 's' : ''}${workers.length !== d.length ? ' (filtered from ' + workers.length + ' total)' : ''}`;
+    }
+
+    function refresh() { const d = getFiltered(); renderMetrics(d); renderCharts(d); renderTable(d); }
+
+    function switchTab(t) {
+      tab = t;
+      document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('on', ['all', 'Contractor', 'Company'][i] === t));
+      refresh();
+    }
+
+    let ageGroup = '', ageMin = '', ageMax = '';
+
+    function getFiltered() {
+      let d = workers;
+      if (tab !== 'all') d = d.filter(w => w.sheet === tab);
+      if (q) d = d.filter(w => [w.name, w.dept, w.des, w.cont, w.rem || ''].join(' ').toLowerCase().includes(q));
+      if (ageGroup === 'unknown') { d = d.filter(w => w.age == null); }
+      else if (ageGroup === '18-25') { d = d.filter(w => w.age >= 18 && w.age <= 25); }
+      else if (ageGroup === '26-35') { d = d.filter(w => w.age >= 26 && w.age <= 35); }
+      else if (ageGroup === '36-45') { d = d.filter(w => w.age >= 36 && w.age <= 45); }
+      else if (ageGroup === '46-55') { d = d.filter(w => w.age >= 46 && w.age <= 55); }
+      else if (ageGroup === '56+') { d = d.filter(w => w.age > 55); }
+      if (ageMin !== '' && !isNaN(ageMin)) d = d.filter(w => w.age != null && w.age >= parseInt(ageMin));
+      if (ageMax !== '' && !isNaN(ageMax)) d = d.filter(w => w.age != null && w.age <= parseInt(ageMax));
+      return d;
+    }
+
+    function filterQ(v) { q = v.toLowerCase().trim(); renderTable(getFiltered()); }
+    function applyFilters() {
+      ageGroup = document.getElementById('age-group-filter').value;
+      ageMin = document.getElementById('age-min').value;
+      ageMax = document.getElementById('age-max').value;
+      refresh();
+    }
+    function setAgeGroup(group) {
+      ageGroup = group; ageMin = ''; ageMax = '';
+      document.getElementById('age-group-filter').value = group;
+      document.getElementById('age-min').value = '';
+      document.getElementById('age-max').value = '';
+      refresh();
+    }
+    function clearAgeFilter() {
+      ageGroup = ''; ageMin = ''; ageMax = '';
+      document.getElementById('age-group-filter').value = '';
+      document.getElementById('age-min').value = '';
+      document.getElementById('age-max').value = '';
+      refresh();
+    }
+
+    function setField(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+    function selField(id, val) { const el = document.getElementById(id); if (!el) return; for (let o of el.options) if (o.value === val) { el.value = val; return; } el.selectedIndex = 0; }
+
+    function openModal(wid) {
+      editId = wid;
+      document.getElementById('ferr').textContent = '';
+      if (wid === null) {
+        document.getElementById('modal-title').innerHTML = 'Add Employee <span class="modal-badge">NEW</span>';
+        document.getElementById('save-btn').textContent = 'Save Employee';
+        ['f-name', 'f-des', 'f-cont', 'f-dob', 'f-doj', 'f-idpdf', 'f-jfpdf', 'f-rem'].forEach(id => setField(id, ''));
+        document.getElementById('f-dept').selectedIndex = 0;
+        document.getElementById('f-gen').selectedIndex = 0;
+        document.getElementById('f-sheet').selectedIndex = 0;
+      } else {
+        const w = workers.find(x => x.id === wid);
+        if (!w) return;
+        document.getElementById('modal-title').innerHTML = 'Edit Employee <span class="modal-badge edit-mode">EDIT</span>';
+        document.getElementById('save-btn').textContent = 'Update Employee';
+        setField('f-name', w.name);
+        selField('f-dept', w.dept);
+        setField('f-des', w.des);
+        setField('f-cont', w.cont);
+        selField('f-gen', w.g);
+        setField('f-dob', w.dob);
+        setField('f-doj', w.doj);
+        selField('f-sheet', w.sheet);
+        setField('f-idpdf', w.idpdf);
+        setField('f-jfpdf', w.jfpdf);
+        setField('f-rem', w.rem);
+      }
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    function closeModal() { document.getElementById('overlay').classList.remove('show'); editId = null; }
+    function calcAge(dob) { if (!dob) return null; const b = new Date(dob), n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a > 0 && a < 120 ? a : null; }
+
+    async function saveEmployee() {
+      const name = document.getElementById('f-name').value.trim();
+      const dept = document.getElementById('f-dept').value;
+      const des = document.getElementById('f-des').value.trim();
+      const gen = document.getElementById('f-gen').value;
+      if (!name || !dept || !des || !gen) { document.getElementById('ferr').textContent = 'Please fill required fields.'; return; }
+
+      const dob = document.getElementById('f-dob').value, doj = document.getElementById('f-doj').value;
+      const computedAge = calcAge(dob);
+
+      const data = {
+        name: name.toUpperCase(), dept, des,
+        cont: document.getElementById('f-cont').value.trim().toUpperCase(),
+        g: gen, dob, doj, age: computedAge !== null ? String(computedAge) : '',
+        sheet: document.getElementById('f-sheet').value,
+        idpdf: document.getElementById('f-idpdf').value.trim(),
+        jfpdf: document.getElementById('f-jfpdf').value.trim(),
+        rem: document.getElementById('f-rem').value.trim()
+      };
+
+      closeModal();
+      showLoading(true);
+
+      try {
+        if (editId === null) {
+          // ADD MODE: Push a new row
+          const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
+          const payload = { id: String(newId), sr: String(workers.length + 1), ...data };
+
+          await fetch(STEIN_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify([payload])
+          });
+        } else {
+          // EDIT MODE: Update existing row matched by id
+          await fetch(STEIN_API_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              condition: { id: String(editId) },
+              set: data
+            })
+          });
+        }
+        await fetchFromSheets();
+      } catch (e) {
+        alert('Failed to save to cloud database.');
+        showLoading(false);
+      }
+    }
+
+    function askDelete(wid, wname) {
+      deleteId = wid;
+      document.getElementById('confirm-msg').textContent = `Are you sure you want to delete "${wname}"? This cannot be undone.`;
+      document.getElementById('confirm-overlay').classList.add('show');
+    }
+    function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('show'); deleteId = null; }
+
+    async function confirmDelete() {
+      if (deleteId === null) return;
+      closeConfirm();
+      showLoading(true);
+      try {
+        await fetch(STEIN_API_URL, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            condition: { id: String(deleteId) }
+          })
+        });
+        await fetchFromSheets();
+      } catch (e) {
+        alert('Failed to delete from cloud database.');
+        showLoading(false);
+      }
+    }
+
+    // Department Configuration Defaults
+    const DEFAULT_DEPTS = ['BM', 'QC', 'NLOOM', 'LAMINTION', 'CUTTING', 'LOOM', 'SULZER', 'MAINT.', 'Electrician', 'Printing', 'Fourcleep', 'NLOOM OP', 'Loom Qc', 'Lamination'];
+    let departments = [...DEFAULT_DEPTS];
+
+    function populateDeptSelect(selected) {
+      const sel = document.getElementById('f-dept');
+      sel.innerHTML = '<option value="">Select dept</option>' + departments.map(d => `<option value="${d}" ${d === selected ? 'selected' : ''}>${d}</option>`).join('');
+    }
+    function renderDeptList() {
+      const el = document.getElementById('dept-list');
+      el.innerHTML = departments.map((d, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #f5f5f5">
+      <span style="font-size:12px;font-weight:500">${d}</span>
+      <button onclick="removeDept(${i})" style="border:none;background:#fdecea;color:#cc3a21;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">Remove</button>
+    </div>`).join('');
+    }
+    function openAddDept() {
+      document.getElementById('new-dept-input').value = '';
+      document.getElementById('dept-err').textContent = '';
+      renderDeptList();
+      document.getElementById('dept-overlay').classList.add('show');
+    }
+    function closeDeptModal() {
+      document.getElementById('dept-overlay').classList.remove('show');
+      populateDeptSelect(document.getElementById('f-dept').value);
+    }
+    function addDept() {
+      const val = document.getElementById('new-dept-input').value.trim().toUpperCase();
+      if (!val) return;
+      if (departments.includes(val)) { document.getElementById('dept-err').textContent = 'Already exists.'; return; }
+      departments.push(val);
+      document.getElementById('new-dept-input').value = '';
+      renderDeptList();
+    }
+    function removeDept(idx) {
+      const name = departments[idx];
+      if (workers.some(w => w.dept === name)) { document.getElementById('dept-err').textContent = 'Department is currently in use.'; return; }
+      departments.splice(idx, 1);
+      renderDeptList();
+    }
+
+    // Modify modal logic to handle drop-down lists
+    const _origOpenModal = openModal;
+    openModal = function (wid) {
+      populateDeptSelect(wid !== null ? (workers.find(x => x.id === wid) || {}).dept || '' : '');
+      _origOpenModal(wid);
+    };
+
+    document.getElementById('confirm-overlay').addEventListener('click', function (e) { if (e.target === this) closeConfirm(); });
+    document.getElementById('dept-overlay').addEventListener('click', function (e) { if (e.target === this) closeDeptModal(); });
+
+    // Initial Load
+    if (STEIN_API_URL === 'YOUR_STEIN_API_URL_HERE') {
+      alert('Please configure your Stein API URL inside the script tags before running.');
+    } else {
+      fetchFromSheets();
+    }
+  </script>
+</body>
+
+</html>
