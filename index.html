@@ -871,7 +871,7 @@
 
       try {
         if (editId === null) {
-          // ADD MODE
+          // ADD MODE: Standard row creation
           const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
           const payload = { id: String(newId), sr: String(workers.length + 1), ...data };
 
@@ -881,15 +881,14 @@
             body: JSON.stringify([payload])
           });
         } else {
-          // EDIT MODE
+          // EDIT MODE: Force Sheet Best to search and match the specific ID column row directly
           const targetWorker = workers.find(x => x.id === editId);
-          if (!targetWorker) throw new Error("Worker data trace index row missing.");
+          if (!targetWorker) throw new Error("Worker profile missing.");
           
-          // FIX 2: Explicitly locked original user ID and serial row parameters to prevent cloud duplication loops
-          await fetch(`${SHEET_API_URL}/${targetWorker.rowNumber}`, {
-            method: 'PUT',
+          await fetch(`${SHEET_API_URL}/id/${editId}`, {
+            method: 'PATCH', // Using PATCH to update only target field values
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: String(editId), sr: targetWorker.sr, ...data })
+            body: JSON.stringify({ sr: targetWorker.sr, ...data })
           });
         }
         await fetchFromSheets();
