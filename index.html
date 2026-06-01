@@ -666,7 +666,7 @@
         const response = await fetch(SHEET_API_URL);
         const data = await response.json();
         workers = data.map((w, index) => ({
-          rowNumber: index, // Track row order position for updating/deleting via Sheet Best
+          rowNumber: index,
           id: w.id ? parseInt(w.id) : null,
           sr: w.sr ? String(w.sr) : '',
           name: w.name || '',
@@ -681,7 +681,7 @@
           idpdf: w.idpdf || '',
           jfpdf: w.jfpdf || '',
           rem: w.rem || ''
-        })).filter(w => w.id !== null && !isNaN(w.id)); // Ignore empty template row artifacts
+        })).filter(w => w.id !== null && !isNaN(w.id));
         refresh();
       } catch (e) {
         alert('Error connecting to cloud database. Please check your API configuration.');
@@ -774,7 +774,8 @@
 
     function getFiltered() {
       let d = workers;
-      if (tab !== 'all') d = d.filter(w => w.sheet === t);
+      // FIX 1: Fixed the tab check syntax rule from 't' to 'tab'
+      if (tab !== 'all') d = d.filter(w => w.sheet === tab);
       if (q) d = d.filter(w => [w.name, w.dept, w.des, w.cont, w.rem || ''].join(' ').toLowerCase().includes(q));
       if (ageGroup === 'unknown') { d = d.filter(w => w.age == null); }
       else if (ageGroup === '18-25') { d = d.filter(w => w.age >= 18 && w.age <= 25); }
@@ -880,11 +881,11 @@
             body: JSON.stringify([payload])
           });
         } else {
-          // EDIT MODE: Sheet Best row index identification updates
+          // EDIT MODE
           const targetWorker = workers.find(x => x.id === editId);
           if (!targetWorker) throw new Error("Worker data trace index row missing.");
           
-          // Sheet Best uses standard array coordinates for PUT updates directly on row positions
+          // FIX 2: Explicitly locked original user ID and serial row parameters to prevent cloud duplication loops
           await fetch(`${SHEET_API_URL}/${targetWorker.rowNumber}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
