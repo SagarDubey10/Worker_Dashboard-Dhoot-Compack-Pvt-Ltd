@@ -666,7 +666,6 @@
         const response = await fetch(SHEET_API_URL);
         const data = await response.json();
         workers = data.map((w, index) => ({
-          rowNumber: index,
           id: w.id ? parseInt(w.id) : null,
           sr: w.sr ? String(w.sr) : '',
           name: w.name || '',
@@ -774,7 +773,6 @@
 
     function getFiltered() {
       let d = workers;
-      // FIX 1: Fixed the tab check syntax rule from 't' to 'tab'
       if (tab !== 'all') d = d.filter(w => w.sheet === tab);
       if (q) d = d.filter(w => [w.name, w.dept, w.des, w.cont, w.rem || ''].join(' ').toLowerCase().includes(q));
       if (ageGroup === 'unknown') { d = d.filter(w => w.age == null); }
@@ -871,7 +869,7 @@
 
       try {
         if (editId === null) {
-          // ADD MODE: Standard row creation
+          // ADD MODE: Just append data row array
           const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
           const payload = { id: String(newId), sr: String(workers.length + 1), ...data };
 
@@ -881,14 +879,14 @@
             body: JSON.stringify([payload])
           });
         } else {
-          // EDIT MODE: Force Sheet Best to search and match the specific ID column row directly
+          // EDIT MODE: Sheet Best standard targeting syntax to search row by key/value condition sets
           const targetWorker = workers.find(x => x.id === editId);
           if (!targetWorker) throw new Error("Worker profile missing.");
           
           await fetch(`${SHEET_API_URL}/id/${editId}`, {
-            method: 'PATCH', // Using PATCH to update only target field values
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sr: targetWorker.sr, ...data })
+            body: JSON.stringify({ id: String(editId), sr: targetWorker.sr, ...data })
           });
         }
         await fetchFromSheets();
@@ -907,12 +905,10 @@
 
     async function confirmDelete() {
       if (deleteId === null) return;
-      const targetWorker = workers.find(x => x.id === deleteId);
       closeConfirm();
       showLoading(true);
       try {
-        if (!targetWorker) throw new Error();
-        await fetch(`${SHEET_API_URL}/${targetWorker.rowNumber}`, {
+        await fetch(`${SHEET_API_URL}/id/${deleteId}`, {
           method: 'DELETE'
         });
         await fetchFromSheets();
