@@ -649,7 +649,6 @@
     const SUPABASE_URL = 'https://xlqbipztkdyzfcrrkcuf.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_BdiHuUpbK9kNMz_kNG4dzQ_esKKdJL9';
 
-    // Client assignment directly registered to parent context
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const DCOLS = ['#3266ad', '#1D9E75', '#639922', '#BA7517', '#D85A30', '#D4537E', '#7F77DD', '#534AB7', '#888780', '#5F5E5A', '#0F6E56', '#cc3a21', '#eaa041', '#4A1B0C'];
@@ -666,6 +665,15 @@
     function showLoading(show) { 
       const loader = document.getElementById('loading');
       if(loader) loader.style.display = show ? 'flex' : 'none'; 
+    }
+
+    // FIX 1: Restored the utility date calculator calculation routing explicitly
+    function calcAge(dob) { 
+      if (!dob) return null; 
+      const b = new Date(dob), n = new Date(); 
+      let a = n.getFullYear() - b.getFullYear(); 
+      if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; 
+      return a > 0 && a < 120 ? a : null; 
     }
 
     async function fetchFromSheets() {
