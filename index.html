@@ -883,11 +883,26 @@
           const targetWorker = workers.find(x => x.id === editId);
           if (!targetWorker) throw new Error("Worker profile missing.");
 
-          await fetch(`${SHEET_API_URL}?id=${editId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: String(editId), sr: targetWorker.sr, ...data })
-          });
+          await fetch(`${SHEET_API_URL}/id/${editId}`, {
+  method: 'PATCH',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: data.name,
+    dept: data.dept,
+    des: data.des,
+    cont: data.cont,
+    g: data.g,
+    dob: data.dob,
+    doj: data.doj,
+    age: data.age,
+    sheet: data.sheet,
+    idpdf: data.idpdf,
+    jfpdf: data.jfpdf,
+    rem: data.rem
+  })
+});
         }
         await fetchFromSheets();
       } catch (e) {
@@ -909,9 +924,9 @@
       showLoading(true);
       try {
         // ✅ FIXED: Use query param ?id= instead of path segment /id/
-        await fetch(`${SHEET_API_URL}?id=${deleteId}`, {
-          method: 'DELETE'
-        });
+        await fetch(`${SHEET_API_URL}/id/${deleteId}`, {
+  method: 'DELETE'
+});
         await fetchFromSheets();
       } catch (e) {
         alert('Failed to delete from cloud database.');
