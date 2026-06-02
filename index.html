@@ -842,38 +842,17 @@
     function setField(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
     function selField(id, val) { const el = document.getElementById(id); if (!el) return; for (let o of el.options) if (o.value === val) { el.value = val; return; } el.selectedIndex = 0; }
 
-    window.openModal = function(wid) {
-      window.editId = wid; // Assigned directly to global scope tracking
-      document.getElementById('ferr').textContent = '';
-      if (wid === null) {
-        document.getElementById('modal-title').innerHTML = 'Add Employee <span class="modal-badge">NEW</span>';
-        document.getElementById('save-btn').textContent = 'Save Employee';
-        ['f-name', 'f-des', 'f-cont', 'f-dob', 'f-doj', 'f-idpdf', 'f-jfpdf', 'f-rem'].forEach(id => setField(id, ''));
-        document.getElementById('f-dept').selectedIndex = 0;
-        document.getElementById('f-gen').selectedIndex = 0;
-        document.getElementById('f-sheet').selectedIndex = 0;
-      } else {
-        const w = workers.find(x => x.id === wid);
-        if (!w) return;
-        document.getElementById('modal-title').innerHTML = 'Edit Employee <span class="modal-badge edit-mode">EDIT</span>';
-        document.getElementById('save-btn').textContent = 'Update Employee';
-        setField('f-name', w.name);
-        selField('f-dept', w.dept);
-        setField('f-des', w.des);
-        setField('f-cont', w.cont);
-        selField('f-gen', w.g);
-        setField('f-dob', w.dob);
-        setField('f-doj', w.doj);
-        selField('f-sheet', w.sheet);
-        setField('f-idpdf', w.idpdf);
-        setField('f-jfpdf', w.jfpdf);
-        setField('f-rem', w.rem);
-      }
-      document.getElementById('overlay').classList.add('show');
+    window.closeModal = function() { 
+      console.log("Wiping global modal tracker tracking variables. Prior state editId:", window.editId);
+      document.getElementById('overlay').classList.remove('show'); 
+      window.editId = null; 
     }
 
-    window.closeModal = function() { document.getElementById('overlay').classList.remove('show'); window.editId = null; }
-    function calcAge(dob) { if (!dob) return null; const b = new Date(dob), n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a > 0 && a < 120 ? a : null; }
+    window.closeConfirm = function() { 
+      console.log("Wiping global confirmation tracker tracking variables. Prior state deleteId:", window.deleteId);
+      document.getElementById('confirm-overlay').classList.remove('show'); 
+      window.deleteId = null; 
+    }
 
     window.saveEmployee = async function() {
       const name = document.getElementById('f-name').value.trim();
@@ -895,58 +874,70 @@
         rem: document.getElementById('f-rem').value.trim()
       };
 
-      const operationModeIsEdit = window.editId !== null;
-      closeModal();
+      // CRITICAL FIX: Secure current tracker context variables locally before UI triggers reset them
+      const currentEditId = window.editId;
+      const operationModeIsEdit = currentEditId !== null;
+      
+      console.log("Save operation triggered. Edit mode active status:", operationModeIsEdit, "| TARGET RUN TIME ID:", currentEditId);
+
+      // Securely hide UI input forms right away
+      window.closeModal();
       showLoading(true);
 
       try {
         if (!operationModeIsEdit) {
+          console.log("Executing standard row insert sequence...");
           const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
           const { error } = await window.supabaseClient
             .from('workers')
             .insert([{ id: Number(newId), sr: String(workers.length + 1), ...data }]);
 
           if (error) throw error;
+          console.log("Insert sequence completed successfully.");
         } else {
+          console.log(`Executing targeted update patch stream on database id index item row: ${currentEditId}`);
           const { error } = await window.supabaseClient
             .from('workers')
             .update(data)
-            .eq('id', window.editId);
+            .eq('id', currentEditId); // Targets the stable local variable instead of the null global tracker
 
           if (error) throw error;
+          console.log(`Update execution patch stream returned 200 OK for dataset: ${currentEditId}`);
         }
         await fetchFromSheets();
       } catch (e) {
-        console.error('Save Error:', e);
+        console.error('Critical database execution engine halt on save operations:', e);
         alert('Failed to update worker records on cloud backend tables.');
         showLoading(false);
       }
     }
 
-    window.handleDeleteRequest = function(wid) {
-      const w = workers.find(x => x.id === wid);
-      if (!w) return;
-      window.deleteId = wid; // Bind specifically to window object container
-      document.getElementById('confirm-msg').textContent = `Are you sure you want to delete "${w.name}"? This cannot be undone.`;
-      document.getElementById('confirm-overlay').classList.add('show');
-    }
-
-    window.closeConfirm = function() { document.getElementById('confirm-overlay').classList.remove('show'); window.deleteId = null; }
-
     window.confirmDelete = async function() {
-      if (window.deleteId === null) return;
-      closeConfirm();
+      // CRITICAL FIX: Secure targeting context elements locally before closing confirms clear tracking parameters
+      const currentDeleteId = window.deleteId;
+      console.log("Deletion sequence confirmed for row id item:", currentDeleteId);
+
+      if (currentDeleteId === null) {
+        console.warn("Halted deletion sequence: targeting payload variable resolution returned null.");
+        window.closeConfirm();
+        return;
+      }
+
+      window.closeConfirm();
       showLoading(true);
+      
       try {
+        console.log(`Sending standard row deletion request payload data array targeting item row: ${currentDeleteId}`);
         const { error } = await window.supabaseClient
           .from('workers')
           .delete()
-          .eq('id', window.deleteId);
+          .eq('id', currentDeleteId); // Targets the stable local variable instead of the null global tracker
 
         if (error) throw error;
+        console.log(`Deletion execution stream returned 200 OK for target profile row item: ${currentDeleteId}`);
         await fetchFromSheets();
       } catch (err) {
-        console.error('Delete Error:', err);
+        console.error('Critical database execution engine halt on delete operations:', err);
         alert('Failed to execute row deletion sequence on remote storage systems.');
         showLoading(false);
       }
