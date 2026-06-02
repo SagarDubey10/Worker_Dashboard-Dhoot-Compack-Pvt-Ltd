@@ -649,7 +649,7 @@
     const SUPABASE_URL = 'https://xlqbipztkdyzfcrrkcuf.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_BdiHuUpbK9kNMz_kNG4dzQ_esKKdJL9';
 
-    // Declared directly on the window to bypass scope restrictions
+    // Client assignment directly registered to parent context
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const DCOLS = ['#3266ad', '#1D9E75', '#639922', '#BA7517', '#D85A30', '#D4537E', '#7F77DD', '#534AB7', '#888780', '#5F5E5A', '#0F6E56', '#cc3a21', '#eaa041', '#4A1B0C'];
@@ -664,7 +664,8 @@
     let departments = [...DEFAULT_DEPTS];
 
     function showLoading(show) { 
-      document.getElementById('loading').style.display = show ? 'flex' : 'none'; 
+      const loader = document.getElementById('loading');
+      if(loader) loader.style.display = show ? 'flex' : 'none'; 
     }
 
     async function fetchFromSheets() {
@@ -697,7 +698,7 @@
         refresh();
       } catch (err) {
         console.error('Fetch Error:', err);
-        alert('Failed to retrieve real-time data logs from Supabase.');
+        alert('Failed to load real-time database content lines.');
       }
       showLoading(false);
     }
@@ -720,22 +721,28 @@
       const ag4 = d.filter(w => w.age >= 46 && w.age <= 55).length;
       const ag5 = d.filter(w => w.age > 55).length;
       
-      document.getElementById('metric-box').innerHTML = `
-        <div class="mc"><div class="mc-l">Total Workers</div><div class="mc-v">${d.length}</div></div>
-        <div class="mc"><div class="mc-l">Female</div><div class="mc-v">${f}</div><div class="mc-s">${d.length ? Math.round(f / d.length * 100) : 0}%</div></div>
-        <div class="mc"><div class="mc-l">Male</div><div class="mc-v">${m}</div><div class="mc-s">${d.length ? Math.round(m / d.length * 100) : 0}%</div></div>
-        <div class="mc"><div class="mc-l">Avg Age</div><div class="mc-v">${avgAge || '—'}</div><div class="mc-s">${minAge}–${maxAge} range</div></div>
-        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('18-25')"><div class="mc-l">Age 18–25</div><div class="mc-v" style="color:#3266ad">${ag1}</div></div>
-        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('26-35')"><div class="mc-l">Age 26–35</div><div class="mc-v" style="color:#1D9E75">${ag2}</div></div>
-        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('36-45')"><div class="mc-l">Age 36–45</div><div class="mc-v" style="color:#639922">${ag3}</div></div>
-        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('46-55')"><div class="mc-l">Age 46–55</div><div class="mc-v" style="color:#BA7517">${ag4}</div></div>
-        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('56+')"><div class="mc-l">Age 56+</div><div class="mc-v" style="color:#cc3a21">${ag5}</div></div>
-        <div class="mc"><div class="mc-l">Missing DOB</div><div class="mc-v">${d.filter(w => !w.dob).length}</div></div>
-      `;
+      const metricsBox = document.getElementById('metric-box');
+      if (metricsBox) {
+        metricsBox.innerHTML = `
+          <div class="mc"><div class="mc-l">Total Workers</div><div class="mc-v">${d.length}</div></div>
+          <div class="mc"><div class="mc-l">Female</div><div class="mc-v">${f}</div><div class="mc-s">${d.length ? Math.round(f / d.length * 100) : 0}%</div></div>
+          <div class="mc"><div class="mc-l">Male</div><div class="mc-v">${m}</div><div class="mc-s">${d.length ? Math.round(m / d.length * 100) : 0}%</div></div>
+          <div class="mc"><div class="mc-l">Avg Age</div><div class="mc-v">${avgAge || '—'}</div><div class="mc-s">${minAge}–${maxAge} range</div></div>
+          <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('18-25')"><div class="mc-l">Age 18–25</div><div class="mc-v" style="color:#3266ad">${ag1}</div></div>
+          <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('26-35')"><div class="mc-l">Age 26–35</div><div class="mc-v" style="color:#1D9E75">${ag2}</div></div>
+          <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('36-45')"><div class="mc-l">Age 36–45</div><div class="mc-v" style="color:#639922">${ag3}</div></div>
+          <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('46-55')"><div class="mc-l">Age 46–55</div><div class="mc-v" style="color:#BA7517">${ag4}</div></div>
+          <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('56+')"><div class="mc-l">Age 56+</div><div class="mc-v" style="color:#cc3a21">${ag5}</div></div>
+          <div class="mc"><div class="mc-l">Missing DOB</div><div class="mc-v">${d.filter(w => !w.dob).length}</div></div>
+        `;
+      }
     }
 
     function makeLegend(id, labels, colors) {
-      document.getElementById(id).innerHTML = labels.map((l, i) => `<div class="li"><div class="lsq" style="background:${colors[i % colors.length]}"></div>${l}</div>`).join('');
+      const el = document.getElementById(id);
+      if (el) {
+        el.innerHTML = labels.map((l, i) => `<div class="li"><div class="lsq" style="background:${colors[i % colors.length]}"></div>${l}</div>`).join('');
+      }
     }
 
     function renderCharts(d) {
@@ -746,14 +753,23 @@
       
       const opts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
       
-      if (dC) dC.destroy();
-      dC = new Chart(document.getElementById('dChart'), { type: 'bar', data: { labels: depts.map(x => x[0]), datasets: [{ data: depts.map(x => x[1]), backgroundColor: DCOLS.slice(0, depts.length), borderRadius: 3 }] }, options: { ...opts, scales: { x: { ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40 } }, y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } } } } });
+      const dChartEl = document.getElementById('dChart');
+      if (dChartEl) {
+        if (dC) dC.destroy();
+        dC = new Chart(dChartEl, { type: 'bar', data: { labels: depts.map(x => x[0]), datasets: [{ data: depts.map(x => x[1]), backgroundColor: DCOLS.slice(0, depts.length), borderRadius: 3 }] }, options: { ...opts, scales: { x: { ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40 } }, y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } } } } });
+      }
       
-      if (gC) gC.destroy();
-      gC = new Chart(document.getElementById('gChart'), { type: 'doughnut', data: { labels: ['Female', 'Male'], datasets: [{ data: [f, m], backgroundColor: ['#D4537E', '#3266ad'], borderWidth: 0 }] }, options: { ...opts, cutout: '60%' } });
+      const gChartEl = document.getElementById('gChart');
+      if (gChartEl) {
+        if (gC) gC.destroy();
+        gC = new Chart(gChartEl, { type: 'doughnut', data: { labels: ['Female', 'Male'], datasets: [{ data: [f, m], backgroundColor: ['#D4537E', '#3266ad'], borderWidth: 0 }] }, options: { ...opts, cutout: '60%' } });
+      }
       
-      if (cC) cC.destroy();
-      cC = new Chart(document.getElementById('cChart'), { type: 'bar', data: { labels: contrs.map(x => x[0]), datasets: [{ data: contrs.map(x => x[1]), backgroundColor: DCOLS.slice(0, contrs.length), borderRadius: 3 }] }, options: { ...opts, scales: { x: { ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40 } }, y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } } } } });
+      const cChartEl = document.getElementById('cChart');
+      if (cChartEl) {
+        if (cC) cC.destroy();
+        cC = new Chart(cChartEl, { type: 'bar', data: { labels: contrs.map(x => x[0]), datasets: [{ data: contrs.map(x => x[1]), backgroundColor: DCOLS.slice(0, contrs.length), borderRadius: 3 }] }, options: { ...opts, scales: { x: { ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40 } }, y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } } } } });
+      }
     }
 
     function pdfCell(url, label) {
@@ -762,26 +778,32 @@
     }
 
     function renderTable(d) {
-      document.getElementById('tbody').innerHTML = d.map((w, i) => `<tr>
-        <td style="color:#aaa;min-width:28px">${i + 1}</td>
-        <td style="font-weight:600;min-width:140px">${w.name}</td>
-        <td style="min-width:55px">${w.dept}</td>
-        <td style="min-width:80px">${w.des}</td>
-        <td style="min-width:70px">${w.cont}</td>
-        <td style="min-width:42px"><span class="badge ${w.g === 'F' ? 'bf' : 'bm'}">${w.g === 'F' ? 'F' : 'M'}</span></td>
-        <td style="min-width:80px">${w.dob || '—'}</td>
-        <td style="min-width:80px">${w.doj || '—'}</td>
-        <td style="min-width:30px">${w.age != null ? w.age : '—'}</td>
-        <td style="min-width:60px">${pdfCell(w.idpdf, 'ID')}</td>
-        <td style="min-width:65px">${pdfCell(w.jfpdf, 'Form')}</td>
-        <td style="min-width:50px"><span class="badge ${w.sheet === 'Contractor' ? 'bco' : 'bc'}">${w.sheet === 'Contractor' ? 'Contr.' : 'CC'}</span></td>
-        <td style="min-width:90px;white-space:nowrap">
-          <button class="action-btn edit-btn" onclick="window.openModal(${w.id})">&#9998; Edit</button>
-          &nbsp;
-          <button class="action-btn del-btn" onclick="window.handleDeleteRequest(${w.id})">&#128465; Del</button>
-        </td>
-      </tr>`).join('');
-      document.getElementById('rc').textContent = `${d.length} worker${d.length !== 1 ? 's' : ''}${workers.length !== d.length ? ' (filtered from ' + workers.length + ' total)' : ''}`;
+      const tbody = document.getElementById('tbody');
+      if (tbody) {
+        tbody.innerHTML = d.map((w, i) => `<tr>
+          <td>${i + 1}</td>
+          <td style="font-weight:600;min-width:140px">${w.name}</td>
+          <td>${w.dept}</td>
+          <td>${w.des}</td>
+          <td>${w.cont}</td>
+          <td><span class="badge ${w.g === 'F' ? 'bf' : 'bm'}">${w.g === 'F' ? 'F' : 'M'}</span></td>
+          <td>${w.dob || '—'}</td>
+          <td>${w.doj || '—'}</td>
+          <td>${w.age != null ? w.age : '—'}</td>
+          <td>${pdfCell(w.idpdf, 'ID')}</td>
+          <td>${pdfCell(w.jfpdf, 'Form')}</td>
+          <td><span class="badge ${w.sheet === 'Contractor' ? 'bco' : 'bc'}">${w.sheet === 'Contractor' ? 'Contr.' : 'CC'}</span></td>
+          <td style="white-space:nowrap">
+            <button class="action-btn edit-btn" onclick="window.openModal(${w.id})">&#9998; Edit</button>
+            &nbsp;
+            <button class="action-btn del-btn" onclick="window.handleDeleteRequest(${w.id})">&#128465; Del</button>
+          </td>
+        </tr>`).join('');
+      }
+      const rc = document.getElementById('rc');
+      if (rc) {
+        rc.textContent = `${d.length} worker${d.length !== 1 ? 's' : ''}${workers.length !== d.length ? ' (filtered from ' + workers.length + ' total)' : ''}`;
+      }
     }
 
     function refresh() { 
@@ -793,9 +815,12 @@
 
     window.switchTab = function(t) {
       tab = t;
-      document.getElementById('tab-all').classList.toggle('on', t === 'all');
-      document.getElementById('tab-contractor').classList.toggle('on', t === 'Contractor');
-      document.getElementById('tab-company').classList.toggle('on', t === 'Company');
+      const tAll = document.getElementById('tab-all');
+      const tCont = document.getElementById('tab-contractor');
+      const tComp = document.getElementById('tab-company');
+      if(tAll) tAll.classList.toggle('on', t === 'all');
+      if(tCont) tCont.classList.toggle('on', t === 'Contractor');
+      if(tComp) tComp.classList.toggle('on', t === 'Company');
       refresh();
     }
 
@@ -843,15 +868,43 @@
     function selField(id, val) { const el = document.getElementById(id); if (!el) return; for (let o of el.options) if (o.value === val) { el.value = val; return; } el.selectedIndex = 0; }
 
     window.closeModal = function() { 
-      console.log("Wiping global modal tracker tracking variables. Prior state editId:", window.editId);
       document.getElementById('overlay').classList.remove('show'); 
       window.editId = null; 
     }
 
     window.closeConfirm = function() { 
-      console.log("Wiping global confirmation tracker tracking variables. Prior state deleteId:", window.deleteId);
       document.getElementById('confirm-overlay').classList.remove('show'); 
       window.deleteId = null; 
+    }
+
+    window.openModal = function(wid) {
+      window.editId = wid; 
+      document.getElementById('ferr').textContent = '';
+      if (wid === null) {
+        document.getElementById('modal-title').innerHTML = 'Add Employee <span class="modal-badge">NEW</span>';
+        document.getElementById('save-btn').textContent = 'Save Employee';
+        ['f-name', 'f-des', 'f-cont', 'f-dob', 'f-doj', 'f-idpdf', 'f-jfpdf', 'f-rem'].forEach(id => setField(id, ''));
+        document.getElementById('f-dept').selectedIndex = 0;
+        document.getElementById('f-gen').selectedIndex = 0;
+        document.getElementById('f-sheet').selectedIndex = 0;
+      } else {
+        const w = workers.find(x => x.id === wid);
+        if (!w) return;
+        document.getElementById('modal-title').innerHTML = 'Edit Employee <span class="modal-badge edit-mode">EDIT</span>';
+        document.getElementById('save-btn').textContent = 'Update Employee';
+        setField('f-name', w.name);
+        selField('f-dept', w.dept);
+        setField('f-des', w.des);
+        setField('f-cont', w.cont);
+        selField('f-gen', w.g);
+        setField('f-dob', w.dob);
+        setField('f-doj', w.doj);
+        selField('f-sheet', w.sheet);
+        setField('f-idpdf', w.idpdf);
+        setField('f-jfpdf', w.jfpdf);
+        setField('f-rem', w.rem);
+      }
+      document.getElementById('overlay').classList.add('show');
     }
 
     window.saveEmployee = async function() {
@@ -874,71 +927,63 @@
         rem: document.getElementById('f-rem').value.trim()
       };
 
-      // CRITICAL FIX: Secure current tracker context variables locally before UI triggers reset them
       const currentEditId = window.editId;
       const operationModeIsEdit = currentEditId !== null;
-      
-      console.log("Save operation triggered. Edit mode active status:", operationModeIsEdit, "| TARGET RUN TIME ID:", currentEditId);
 
-      // Securely hide UI input forms right away
       window.closeModal();
       showLoading(true);
 
       try {
         if (!operationModeIsEdit) {
-          console.log("Executing standard row insert sequence...");
           const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
           const { error } = await window.supabaseClient
             .from('workers')
             .insert([{ id: Number(newId), sr: String(workers.length + 1), ...data }]);
 
           if (error) throw error;
-          console.log("Insert sequence completed successfully.");
         } else {
-          console.log(`Executing targeted update patch stream on database id index item row: ${currentEditId}`);
+          console.log("Saving metrics targeting row key index ID:", currentEditId);
           const { error } = await window.supabaseClient
             .from('workers')
             .update(data)
-            .eq('id', currentEditId); // Targets the stable local variable instead of the null global tracker
+            .eq('id', currentEditId);
 
           if (error) throw error;
-          console.log(`Update execution patch stream returned 200 OK for dataset: ${currentEditId}`);
         }
         await fetchFromSheets();
       } catch (e) {
-        console.error('Critical database execution engine halt on save operations:', e);
-        alert('Failed to update worker records on cloud backend tables.');
+        console.error('Save Error:', e);
+        alert('Failed to update employee details.');
         showLoading(false);
       }
     }
 
+    window.handleDeleteRequest = function(wid) {
+      const w = workers.find(x => x.id === wid);
+      if (!w) return;
+      window.deleteId = wid; 
+      document.getElementById('confirm-msg').textContent = `Are you sure you want to delete "${w.name}"? This cannot be undone.`;
+      document.getElementById('confirm-overlay').classList.add('show');
+    }
+
     window.confirmDelete = async function() {
-      // CRITICAL FIX: Secure targeting context elements locally before closing confirms clear tracking parameters
       const currentDeleteId = window.deleteId;
-      console.log("Deletion sequence confirmed for row id item:", currentDeleteId);
-
-      if (currentDeleteId === null) {
-        console.warn("Halted deletion sequence: targeting payload variable resolution returned null.");
-        window.closeConfirm();
-        return;
-      }
-
+      if (currentDeleteId === null) return;
+      
       window.closeConfirm();
       showLoading(true);
-      
       try {
-        console.log(`Sending standard row deletion request payload data array targeting item row: ${currentDeleteId}`);
+        console.log("Sending delete instruction array targeting item record ID:", currentDeleteId);
         const { error } = await window.supabaseClient
           .from('workers')
           .delete()
-          .eq('id', currentDeleteId); // Targets the stable local variable instead of the null global tracker
+          .eq('id', currentDeleteId);
 
         if (error) throw error;
-        console.log(`Deletion execution stream returned 200 OK for target profile row item: ${currentDeleteId}`);
         await fetchFromSheets();
       } catch (err) {
-        console.error('Critical database execution engine halt on delete operations:', err);
-        alert('Failed to execute row deletion sequence on remote storage systems.');
+        console.error('Delete Error:', err);
+        alert('Failed to drop worker profile data lines.');
         showLoading(false);
       }
     }
@@ -992,8 +1037,8 @@
     document.getElementById('confirm-overlay').addEventListener('click', function (e) { if (e.target === this) closeConfirm(); });
     document.getElementById('dept-overlay').addEventListener('click', function (e) { if (e.target === this) closeDeptModal(); });
 
-    // Bootstrap app synchronization routines
-    populateDeptSelect('');
+    // Launch initial page parsing sequences
+    window.populateDeptSelect('');
     fetchFromSheets();
   </script>
 </body>
