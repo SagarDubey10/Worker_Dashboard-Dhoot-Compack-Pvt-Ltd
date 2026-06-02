@@ -869,7 +869,7 @@
 
       try {
         if (editId === null) {
-          // ADD MODE: Just append data row array
+          // ADD MODE: Append new row
           const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
           const payload = { id: String(newId), sr: String(workers.length + 1), ...data };
 
@@ -879,12 +879,12 @@
             body: JSON.stringify([payload])
           });
         } else {
-          // EDIT MODE: Sheet Best standard targeting syntax to search row by key/value condition sets
+          // ✅ FIXED: Use query param ?id= and PATCH method to update existing row
           const targetWorker = workers.find(x => x.id === editId);
           if (!targetWorker) throw new Error("Worker profile missing.");
-          
-          await fetch(`${SHEET_API_URL}/id/${editId}`, {
-            method: 'PUT',
+
+          await fetch(`${SHEET_API_URL}?id=${editId}`, {
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: String(editId), sr: targetWorker.sr, ...data })
           });
@@ -908,7 +908,8 @@
       closeConfirm();
       showLoading(true);
       try {
-        await fetch(`${SHEET_API_URL}/id/${deleteId}`, {
+        // ✅ FIXED: Use query param ?id= instead of path segment /id/
+        await fetch(`${SHEET_API_URL}?id=${deleteId}`, {
           method: 'DELETE'
         });
         await fetchFromSheets();
