@@ -647,10 +647,19 @@
       </div>
     </div>
   </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
-    const SHEET_API_URL = 'https://api.sheetbest.com/sheets/310cd43a-bb30-4ca0-ada7-a9830ad43a90';
+    const SUPABASE_URL =
+'https://xlqbipztkdyzfcrrkcuf.supabase.co';
+
+const SUPABASE_KEY =
+'sb_publishable_BdiHuUpbK9kNMz_kNG4dzQ_esKKdJL9';
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
     const DCOLS = ['#3266ad', '#1D9E75', '#639922', '#BA7517', '#D85A30', '#D4537E', '#7F77DD', '#534AB7', '#888780', '#5F5E5A', '#0F6E56', '#cc3a21', '#eaa041', '#4A1B0C'];
     let workers = [];
@@ -661,32 +670,46 @@
     function showLoading(show) { document.getElementById('loading').classList.toggle('show', show); }
 
     async function fetchFromSheets() {
-      showLoading(true);
-      try {
-        const response = await fetch(SHEET_API_URL);
-        const data = await response.json();
-        workers = data.map((w, index) => ({
-          id: w.id ? parseInt(w.id) : null,
-          sr: w.sr ? String(w.sr) : '',
-          name: w.name || '',
-          dept: w.dept || '',
-          des: w.des || '',
-          cont: w.cont || '',
-          g: w.g || '',
-          dob: w.dob || '',
-          doj: w.doj || '',
-          age: w.age ? parseInt(w.age) : null,
-          sheet: w.sheet || 'Contractor',
-          idpdf: w.idpdf || '',
-          jfpdf: w.jfpdf || '',
-          rem: w.rem || ''
-        })).filter(w => w.id !== null && !isNaN(w.id));
-        refresh();
-      } catch (e) {
-        alert('Error connecting to cloud database. Please check your API configuration.');
-      }
-      showLoading(false);
-    }
+
+  showLoading(true);
+
+  try {
+
+    const { data, error } = await supabase
+      .from('workers')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    workers = data.map(w => ({
+      id: Number(w.id),
+      sr: w.sr || '',
+      name: w.name || '',
+      dept: w.dept || '',
+      des: w.des || '',
+      cont: w.cont || '',
+      g: w.g || '',
+      dob: w.dob || '',
+      doj: w.doj || '',
+      age: w.age ? Number(w.age) : null,
+      sheet: w.sheet || 'Contractor',
+      idpdf: w.idpdf || '',
+      jfpdf: w.jfpdf || '',
+      rem: w.rem || ''
+    }));
+
+    refresh();
+
+  } catch (err) {
+
+    console.error(err);
+    alert('Failed to load workers from Supabase');
+
+  }
+
+  showLoading(false);
+}
 
     function counts(arr, key) { const m = {}; arr.forEach(w => { const v = w[key] || '?'; m[v] = (m[v] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); }
 
@@ -869,42 +892,29 @@
 
       try {
         if (editId === null) {
-          // ADD MODE: Append new row
-          const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
-          const payload = { id: String(newId), sr: String(workers.length + 1), ...data };
 
-          await fetch(SHEET_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify([payload])
-          });
-        } else {
-          // ✅ FIXED: Use query param ?id= and PATCH method to update existing row
-          const targetWorker = workers.find(x => x.id === editId);
-          if (!targetWorker) throw new Error("Worker profile missing.");
+  const payload = {
+    sr: String(workers.length + 1),
+    ...data
+  };
 
-          await fetch(`${SHEET_API_URL}/id/${editId}`, {
-  method: 'PATCH',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    name: data.name,
-    dept: data.dept,
-    des: data.des,
-    cont: data.cont,
-    g: data.g,
-    dob: data.dob,
-    doj: data.doj,
-    age: data.age,
-    sheet: data.sheet,
-    idpdf: data.idpdf,
-    jfpdf: data.jfpdf,
-    rem: data.rem
-  })
-});
-        }
-        await fetchFromSheets();
+  const { error } = await supabase
+    .from('workers')
+    .insert([payload]);
+
+  if (error) throw error;
+
+} else {
+
+  const { error } = await supabase
+    .from('workers')
+    .update(data)
+    .eq('id', editId);
+
+  if (error) throw error;
+}
+
+await fetchFromSheets();
       } catch (e) {
         alert('Failed to save to cloud database.');
         showLoading(false);
@@ -919,20 +929,33 @@
     function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('show'); deleteId = null; }
 
     async function confirmDelete() {
-      if (deleteId === null) return;
-      closeConfirm();
-      showLoading(true);
-      try {
-        // ✅ FIXED: Use query param ?id= instead of path segment /id/
-        await fetch(`${SHEET_API_URL}/id/${deleteId}`, {
-  method: 'DELETE'
-});
-        await fetchFromSheets();
-      } catch (e) {
-        alert('Failed to delete from cloud database.');
-        showLoading(false);
-      }
-    }
+
+  if (deleteId === null) return;
+
+  closeConfirm();
+
+  showLoading(true);
+
+  try {
+
+    const { error } = await supabase
+      .from('workers')
+      .delete()
+      .eq('id', deleteId);
+
+    if (error) throw error;
+
+    await fetchFromSheets();
+
+  } catch (err) {
+
+    console.error(err);
+    alert('Failed to delete employee');
+
+    showLoading(false);
+
+  }
+}
 
     const DEFAULT_DEPTS = ['BM', 'QC', 'NLOOM', 'LAMINTION', 'CUTTING', 'LOOM', 'SULZER', 'MAINT.', 'Electrician', 'Printing', 'Fourcleep', 'NLOOM OP', 'Loom Qc', 'Lamination'];
     let departments = [...DEFAULT_DEPTS];
