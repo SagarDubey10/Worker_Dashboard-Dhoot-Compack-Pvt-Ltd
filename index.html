@@ -493,7 +493,7 @@
 <body>
   <div id="loading" class="loading-overlay">Syncing Database with Supabase...</div>
   <h1>Worker Details Dashboard</h1>
-  <p class="sub">Dhoot Compack Pvt Ltd · Gut No.140 Bidkin, Farola &nbsp;|&nbsp; Live Supabase Infrastructure Cloud Database</p>
+  <p class="sub">Dhoot Compack Pvt Ltd · Gut No.140 Bidkin, Farola &nbsp;|&nbsp; Live Cloud Backend Integration Infrastructure</p>
 
   <div class="tabs">
     <button id="tab-all" class="tab on" onclick="switchTab('all')">All Workers</button>
@@ -649,7 +649,8 @@
     const SUPABASE_URL = 'https://xlqbipztkdyzfcrrkcuf.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_BdiHuUpbK9kNMz_kNG4dzQ_esKKdJL9';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // FIX: Renamed global variable instance to prevent script compilation naming space crashes
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const DCOLS = ['#3266ad', '#1D9E75', '#639922', '#BA7517', '#D85A30', '#D4537E', '#7F77DD', '#534AB7', '#888780', '#5F5E5A', '#0F6E56', '#cc3a21', '#eaa041', '#4A1B0C'];
     let workers = [];
@@ -668,7 +669,7 @@
     async function fetchFromSheets() {
       showLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('workers')
           .select('*')
           .order('id', { ascending: true });
@@ -695,7 +696,7 @@
         refresh();
       } catch (err) {
         console.error('Fetch Error:', err);
-        alert('Failed to load data from Supabase infrastructure.');
+        alert('Failed to fetch data updates from Supabase cloud database clusters.');
       }
       showLoading(false);
     }
@@ -723,11 +724,11 @@
         <div class="mc"><div class="mc-l">Female</div><div class="mc-v">${f}</div><div class="mc-s">${d.length ? Math.round(f / d.length * 100) : 0}%</div></div>
         <div class="mc"><div class="mc-l">Male</div><div class="mc-v">${m}</div><div class="mc-s">${d.length ? Math.round(m / d.length * 100) : 0}%</div></div>
         <div class="mc"><div class="mc-l">Avg Age</div><div class="mc-v">${avgAge || '—'}</div><div class="mc-s">${minAge}–${maxAge} range</div></div>
-        <div class="mc" style="cursor:pointer" onclick="setAgeGroup('18-25')"><div class="mc-l">Age 18–25</div><div class="mc-v" style="color:#3266ad">${ag1}</div></div>
-        <div class="mc" style="cursor:pointer" onclick="setAgeGroup('26-35')"><div class="mc-l">Age 26–35</div><div class="mc-v" style="color:#1D9E75">${ag2}</div></div>
-        <div class="mc" style="cursor:pointer" onclick="setAgeGroup('36-45')"><div class="mc-l">Age 36–45</div><div class="mc-v" style="color:#639922">${ag3}</div></div>
-        <div class="mc" style="cursor:pointer" onclick="setAgeGroup('46-55')"><div class="mc-l">Age 46–55</div><div class="mc-v" style="color:#BA7517">${ag4}</div></div>
-        <div class="mc" style="cursor:pointer" onclick="setAgeGroup('56+')"><div class="mc-l">Age 56+</div><div class="mc-v" style="color:#cc3a21">${ag5}</div></div>
+        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('18-25')"><div class="mc-l">Age 18–25</div><div class="mc-v" style="color:#3266ad">${ag1}</div></div>
+        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('26-35')"><div class="mc-l">Age 26–35</div><div class="mc-v" style="color:#1D9E75">${ag2}</div></div>
+        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('36-45')"><div class="mc-l">Age 36–45</div><div class="mc-v" style="color:#639922">${ag3}</div></div>
+        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('46-55')"><div class="mc-l">Age 46–55</div><div class="mc-v" style="color:#BA7517">${ag4}</div></div>
+        <div class="mc" style="cursor:pointer" onclick="window.setAgeGroup('56+')"><div class="mc-l">Age 56+</div><div class="mc-v" style="color:#cc3a21">${ag5}</div></div>
         <div class="mc"><div class="mc-l">Missing DOB</div><div class="mc-v">${d.filter(w => !w.dob).length}</div></div>
       `;
     }
@@ -774,9 +775,9 @@
         <td style="min-width:65px">${pdfCell(w.jfpdf, 'Form')}</td>
         <td style="min-width:50px"><span class="badge ${w.sheet === 'Contractor' ? 'bco' : 'bc'}">${w.sheet === 'Contractor' ? 'Contr.' : 'CC'}</span></td>
         <td style="min-width:90px;white-space:nowrap">
-          <button class="action-btn edit-btn" onclick="openModal(${w.id})">&#9998; Edit</button>
+          <button class="action-btn edit-btn" onclick="window.openModal(${w.id})">&#9998; Edit</button>
           &nbsp;
-          <button class="action-btn del-btn" onclick="handleDeleteRequest(${w.id})">&#128465; Del</button>
+          <button class="action-btn del-btn" onclick="window.handleDeleteRequest(${w.id})">&#128465; Del</button>
         </td>
       </tr>`).join('');
       document.getElementById('rc').textContent = `${d.length} worker${d.length !== 1 ? 's' : ''}${workers.length !== d.length ? ' (filtered from ' + workers.length + ' total)' : ''}`;
@@ -789,7 +790,7 @@
       renderTable(d); 
     }
 
-    function switchTab(t) {
+    window.switchTab = function(t) {
       tab = t;
       document.getElementById('tab-all').classList.toggle('on', t === 'all');
       document.getElementById('tab-contractor').classList.toggle('on', t === 'Contractor');
@@ -812,17 +813,16 @@
       return d;
     }
 
-    function filterQ(v) { q = v.toLowerCase().trim(); renderTable(getFiltered()); }
+    window.filterQ = function(v) { q = v.toLowerCase().trim(); renderTable(getFiltered()); }
     
-    function applyFilters() {
+    window.applyFilters = function() {
       ageGroup = document.getElementById('age-group-filter').value;
       ageMin = document.getElementById('age-min').value;
       ageMax = document.getElementById('age-max').value;
       refresh();
     }
     
-     Zar = window;
-    Zar.setAgeGroup = function(group) {
+    window.setAgeGroup = function(group) {
       ageGroup = group; ageMin = ''; ageMax = '';
       document.getElementById('age-group-filter').value = group;
       document.getElementById('age-min').value = '';
@@ -830,7 +830,7 @@
       refresh();
     }
     
-    function clearAgeFilter() {
+    window.clearAgeFilter = function() {
       ageGroup = ''; ageMin = ''; ageMax = '';
       document.getElementById('age-group-filter').value = '';
       document.getElementById('age-min').value = '';
@@ -841,7 +841,7 @@
     function setField(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
     function selField(id, val) { const el = document.getElementById(id); if (!el) return; for (let o of el.options) if (o.value === val) { el.value = val; return; } el.selectedIndex = 0; }
 
-    function openModal(wid) {
+    window.openModal = function(wid) {
       editId = wid;
       document.getElementById('ferr').textContent = '';
       if (wid === null) {
@@ -871,10 +871,10 @@
       document.getElementById('overlay').classList.add('show');
     }
 
-    function closeModal() { document.getElementById('overlay').classList.remove('show'); editId = null; }
+    window.closeModal = function() { document.getElementById('overlay').classList.remove('show'); editId = null; }
     function calcAge(dob) { if (!dob) return null; const b = new Date(dob), n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a > 0 && a < 120 ? a : null; }
 
-    async function saveEmployee() {
+    window.saveEmployee = function() {
       const name = document.getElementById('f-name').value.trim();
       const dept = document.getElementById('f-dept').value;
       const des = document.getElementById('f-des').value.trim();
@@ -897,30 +897,32 @@
       closeModal();
       showLoading(true);
 
-      try {
-        if (editId === null) {
-          const { error } = await supabase
-            .from('workers')
-            .insert([{ sr: String(workers.length + 1), ...data }]);
+      (async () => {
+        try {
+          if (editId === null) {
+            const { error } = await supabaseClient
+              .from('workers')
+              .insert([{ sr: String(workers.length + 1), ...data }]);
 
-          if (error) throw error;
-        } else {
-          const { error } = await supabase
-            .from('workers')
-            .update(data)
-            .eq('id', editId);
+            if (error) throw error;
+          } else {
+            const { error } = await supabaseClient
+              .from('workers')
+              .update(data)
+              .eq('id', editId);
 
-          if (error) throw error;
+            if (error) throw error;
+          }
+          await fetchFromSheets();
+        } catch (e) {
+          console.error('Save Error:', e);
+          alert('Failed to update worker records on remote dataset storage tables.');
+          showLoading(false);
         }
-        await fetchFromSheets();
-      } catch (e) {
-        console.error('Save Error:', e);
-        alert('Failed to commit profile updates to Supabase.');
-      }
-      showLoading(false);
+      })();
     }
 
-    function handleDeleteRequest(wid) {
+    window.handleDeleteRequest = function(wid) {
       const w = workers.find(x => x.id === wid);
       if (!w) return;
       deleteId = wid;
@@ -928,54 +930,61 @@
       document.getElementById('confirm-overlay').classList.add('show');
     }
 
-    function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('show'); deleteId = null; }
+    window.closeConfirm = function() { document.getElementById('confirm-overlay').classList.remove('show'); deleteId = null; }
 
-    async function confirmDelete() {
+    window.confirmDelete = function() {
       if (deleteId === null) return;
       closeConfirm();
       showLoading(true);
-      try {
-        const { error } = await supabase
-          .from('workers')
-          .delete()
-          .eq('id', deleteId);
+      
+      (async () => {
+        try {
+          const { error } = await supabaseClient
+            .from('workers')
+            .delete()
+            .eq('id', deleteId);
 
-        if (error) throw error;
-        await fetchFromSheets();
-      } catch (err) {
-        console.error('Delete Error:', err);
-        alert('Failed to delete targeted data line from backend architecture.');
-      }
-      showLoading(false);
+          if (error) throw error;
+          await fetchFromSheets();
+        } catch (err) {
+          console.error('Delete Error:', err);
+          alert('Failed to delete targeted worker profile lines.');
+          showLoading(false);
+        }
+      })();
     }
 
-    function populateDeptSelect(selected) {
+    window.populateDeptSelect = function(selected) {
       const sel = document.getElementById('f-dept');
-      sel.innerHTML = '<option value="">Select dept</option>' + departments.map(d => `<option value="${d}" ${d === selected ? 'selected' : ''}>${d}</option>`).join('');
+      if(sel) {
+        sel.innerHTML = '<option value="">Select dept</option>' + departments.map(d => `<option value="${d}" ${d === selected ? 'selected' : ''}>${d}</option>`).join('');
+      }
     }
     
-    function renderDeptList() {
+    window.renderDeptList = function() {
       const el = document.getElementById('dept-list');
-      el.innerHTML = departments.map((d, i) => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #f5f5f5">
-          <span style="font-size:12px;font-weight:500">${d}</span>
-          <button onclick="removeDept(${i})" style="border:none;background:#fdecea;color:#cc3a21;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">Remove</button>
-        </div>`).join('');
+      if(el) {
+        el.innerHTML = departments.map((d, i) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #f5f5f5">
+            <span style="font-size:12px;font-weight:500">${d}</span>
+            <button onclick="removeDept(${i})" style="border:none;background:#fdecea;color:#cc3a21;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">Remove</button>
+          </div>`).join('');
+      }
     }
     
-    function openAddDept() {
+    window.openAddDept = function() {
       document.getElementById('new-dept-input').value = '';
       document.getElementById('dept-err').textContent = '';
       renderDeptList();
       document.getElementById('dept-overlay').classList.add('show');
     }
     
-    function closeDeptModal() {
+    window.closeDeptModal = function() {
       document.getElementById('dept-overlay').classList.remove('show');
       populateDeptSelect(document.getElementById('f-dept').value);
     }
     
-    function addDept() {
+    window.addDept = function() {
       const val = document.getElementById('new-dept-input').value.trim().toUpperCase();
       if (!val) return;
       if (departments.includes(val)) { document.getElementById('dept-err').textContent = 'Already exists.'; return; }
@@ -984,23 +993,17 @@
       renderDeptList();
     }
     
-    function removeDept(idx) {
+    window.removeDept = function(idx) {
       const name = departments[idx];
       if (workers.some(w => w.dept === name)) { document.getElementById('dept-err').textContent = 'Department is currently in use.'; return; }
       departments.splice(idx, 1);
       renderDeptList();
     }
 
-    const _origOpenModal = openModal;
-    window.openModal = function (wid) {
-      populateDeptSelect(wid !== null ? (workers.find(x => x.id === wid) || {}).dept || '' : '');
-      _origOpenModal(wid);
-    };
-
     document.getElementById('confirm-overlay').addEventListener('click', function (e) { if (e.target === this) closeConfirm(); });
     document.getElementById('dept-overlay').addEventListener('click', function (e) { if (e.target === this) closeDeptModal(); });
 
-    // Initial Database Synchronization Trigger
+    // Bootstrap execution layers on window load
     populateDeptSelect('');
     fetchFromSheets();
   </script>
